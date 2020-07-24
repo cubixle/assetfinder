@@ -54,16 +54,20 @@ func Scanner(verboseLogging, checkHTTPS, disableStatusCheck bool, outputFile, do
 		return nil
 	}
 
-	return writeFile(outputFile, ress)
+	return writeFile(outputFile, ress, disableStatusCheck)
 }
 
-func writeFile(outputFile string, res []Result) error {
+func writeFile(outputFile string, res []Result, disableStatusCheck bool) error {
 	resBytes := []byte("domain, status code")
 	for _, r := range res {
 		if r.StatusCode == 0 || r.Error != nil {
 			continue
 		}
-		resBytes = append(resBytes, []byte(fmt.Sprintf("%s, %d\n", r.Domain, r.StatusCode))...)
+		if disableStatusCheck {
+			resBytes = append(resBytes, []byte(fmt.Sprintf("%s\n", r.Domain))...)
+		} else {
+			resBytes = append(resBytes, []byte(fmt.Sprintf("%s, %d\n", r.Domain, r.StatusCode))...)
+		}
 	}
 
 	err := ioutil.WriteFile(outputFile, resBytes, 0775)
